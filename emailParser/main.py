@@ -1,13 +1,8 @@
 import time
 import csv
 import socket
-import logging
 from getMail import get_email_data
 from fuzzywuzzy import process
-
-# Set up logging
-logging.basicConfig(filename='/home/pi/Documents/app.log', level=logging.INFO,
-                    format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 def find_closest_address(location, data):
     # Capitalize the location
@@ -27,10 +22,8 @@ def find_closest_address(location, data):
             # Find the row with the best match
             for row in data:
                 if row[0] == best_match_name:
-                    logging.info(f'Best match found: {best_match_name} with score: {match_score}')
                     return [int(i) for i in row[1].split(', ')]
 
-    logging.info('No suitable match found.')
     return None
 
 def send_message(msg):
@@ -42,9 +35,20 @@ def send_message(msg):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((server_ip, server_port))
             s.sendall(msg.encode())
-        logging.info(f'Message sent: {msg}')
     except Exception as e:
-        logging.error(f'Error occurred while sending message: {msg}. Error: {e}')
+        print(f'Error occurred while sending message: {msg}. Error: {e}')
+
+def format_message(category, msg):
+    # Lowercase the category for case insensitivity
+    category = category.lower()
+
+    # Decide the prefix based on the category
+    if category == 'fire':
+        return f'{msg},RED'
+    elif category == 'ems':
+        return f'{msg},BLUE'
+    else:  # 'info' or any other category
+        return f'{msg},GREEN'
 
 def main():
     # Loading the csv file into a list
@@ -55,13 +59,14 @@ def main():
     while True:
         location, cross_streets, category = get_email_data()
         if location is not None:
-            logging.info(f'Location received: {location}')
-            send_message("500")  # Sending "500" for each location received
+            send_message("500,BLK")  # Sending "500" for each location received
+            send_message("176,ORANGE")
             closest_address = find_closest_address(location, data)
             if closest_address:
                 # For each int in the list, send a separate message to the server
                 for msg in closest_address:
-                    send_message(str(msg))
+                    formatted_msg = format_message(category, str(msg))
+                    send_message(formatted_msg)
 
         # Wait for 5 seconds
         time.sleep(5)

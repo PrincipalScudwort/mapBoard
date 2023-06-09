@@ -3,10 +3,18 @@ import tkinter as tk
 from tkinter import ttk
 import socket
 
+# Define a color state variable
+color_state = 'RED'
+
 def send_message(msg):
+    global color_state  # Use the global color_state
+
     # Server IP and port
     server_ip = '192.168.1.113'  # This should be the IP of the receiving Pi
     server_port = 50000  # Choose a port that is not in use
+
+    # Append the color state to the message
+    msg = msg + ',' + color_state
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((server_ip, server_port))
@@ -16,6 +24,10 @@ def button_action(nums):
     # split the numbers and send each one
     for num in nums.split(","):
         send_message(num.strip())
+
+def change_color_state(new_color_state):
+    global color_state
+    color_state = new_color_state
 
 def main():
     # read CSV
@@ -37,6 +49,23 @@ def main():
     # create a custom style for the buttons
     style = ttk.Style()
     style.configure("Red.TButton", foreground="red")
+    style.configure("Blue.TButton", foreground="blue")
+    style.configure("Green.TButton", foreground="green")
+
+    # add the color buttons
+# add the color buttons
+    red_button = ttk.Button(main_frame, text="RED", command=lambda: change_color_state('RED'), style="Red.TButton")
+    red_button.pack(side=tk.TOP)
+    blue_button = ttk.Button(main_frame, text="BLUE", command=lambda: change_color_state('BLUE'), style="Blue.TButton")
+    blue_button.pack(side=tk.TOP)
+    green_button = ttk.Button(main_frame, text="GREEN", command=lambda: change_color_state('GREEN'), style="Green.TButton")
+    green_button.pack(side=tk.TOP)
+
+    # rest of the code...
+    # read CSV
+    my_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+    # create a custom style for the buttons
 
     # create a custom style for the scrollbar
     style.configure("Custom.Vertical.TScrollbar", width=110)
@@ -57,6 +86,7 @@ def main():
         if i == 0:
             button = ttk.Button(second_frame, text=key, command=lambda value=value: button_action(value), style="Red.TButton")
         else:
+            # button = ttk.Button(second_frame, text=key, command=lambda value=value: button_action(value), padx=20, pady=20)
             button = ttk.Button(second_frame, text=key, command=lambda value=value: button_action(value))
         button.grid(row=i//3, column=i%3, sticky=(tk.W, tk.E, tk.N, tk.S), padx=20, pady=20)
 

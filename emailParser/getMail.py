@@ -13,7 +13,7 @@ import logging
 
 # Set up logging
 # Set up logging
-logging.basicConfig(filename='/home/pi/Documents/app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+#logging.basicConfig(filename='/home/pi/Documents/app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 def get_email_data():
     SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
@@ -60,7 +60,7 @@ def get_email_data():
         messages = results.get('messages', [])
 
         if not messages:
-            logging.info('No new messages found.')
+            #logging.info('No new messages found.')
             return None, None, None
         else:
             for message in messages:
@@ -71,13 +71,13 @@ def get_email_data():
                 if content:
                     location, cross_streets, category = parse_email_content(content)
                     service.users().messages().modify(userId='me', id=message['id'], body={'removeLabelIds': ['UNREAD']}).execute()
-                    logging.info('Email processed successfully.')
+                    #logging.info('Email processed successfully.')
                     return location, cross_streets, category
                 else:
                     logging.warning('No content found in the email.')
                     return None, None, None
     except HttpError as error:
-        logging.error(f'An error occurred: {error}')
+        #logging.error(f'An error occurred: {error}')
         return None, None, None
     
 def main():
