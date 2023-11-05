@@ -15,13 +15,35 @@ strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRI
 # Initialize the library (must be called once before other functions)
 strip.begin()
 
+def rainbow(strip):
+    """Draw rainbow that fades across all pixels at once."""
+    for j in range(256):
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, wheel((i+j) & 255))
+        strip.show()
+        time.sleep(20/1000.0)
+
+def sparkle(strip):
+    """Fast and sparkly red, white, and blue pattern."""
+    for i in range(100):  # number of sparkles
+        i = random.randint(0, strip.numPixels()-1)
+        if i % 3 == 0:
+            strip.setPixelColor(i, Color(255,0,0))  # red
+        elif i % 3 == 1:
+            strip.setPixelColor(i, Color(255,255,255))  # white
+        else:
+            strip.setPixelColor(i, Color(0,0,255))  # blue
+        strip.show()
+        time.sleep(0.01)  # fast change
+        strip.setPixelColor(i, Color(0,0,0))  # turn off
+
 def handle_client(conn, addr):
     # Define color mapping
     color_map = {
         'RED': (0, 255, 0),
         'GREEN': (255,0, 0),
         'BLUE': (0, 0, 255),
-        'ORANGE': (255, 165, 0),
+        'ORANGE': (160, 255, 0),
         'YELLOW': (255, 255, 0),
         'BLK': (0, 0, 0),
         '': (255, 255, 255)  # default color when no color is sent
@@ -40,6 +62,7 @@ def handle_client(conn, addr):
             num = int(num)
             color = color_map.get(color_str, (255, 255, 255))  # default color when unrecognized color is sent
 
+
             if 0 <= num <= 399:
                 strip.setPixelColor(num, Color(*color))
                 strip.show()
@@ -47,6 +70,12 @@ def handle_client(conn, addr):
                 for i in range(strip.numPixels()):
                     strip.setPixelColor(i, Color(0,0,0))
                 strip.show()
+            elif num == 501:
+                rainbow(strip)
+
+            elif num == 502:
+                sparkle(strip)
+                    
     conn.close()
 
 
