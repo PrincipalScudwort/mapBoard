@@ -3,19 +3,18 @@ import tkinter as tk
 from tkinter import ttk
 import socket
 
+SERVER_IP = '192.168.1.113'  # This should be the IP of the receiving Pi (LED CONTROLLER)
+SERVER_PORT = 50000  # Choose a port that is not in use. Receving Pi (LED CONTROLLER) must be listening on the same port
 # Define a color state variable
 color_state = 'RED'
 
 def send_message(msg):
     global color_state  # Use the global color_state
-
     # Server IP and port
-    server_ip = '192.168.1.113'  # This should be the IP of the receiving Pi
-    server_port = 50000  # Choose a port that is not in use
-
+    server_ip = SERVER_IP  # This should be the IP of the LED CONTROLLER PI
+    server_port = SERVER_PORT  # Choose a port that is not in use. Must be the same on LED CONTROLLER PI 
     # Append the color state to the message
     msg = msg + ',' + color_state
-
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((server_ip, server_port))
         s.sendall(msg.encode())
@@ -78,7 +77,7 @@ def main():
 
     second_frame = ttk.Frame(my_canvas)
 
-    # add second_frame to canvas
+    # add second_frame to canvas (for two monitors)
     my_canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
     # add buttons dynamically based on csv content

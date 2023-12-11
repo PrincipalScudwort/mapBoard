@@ -1,9 +1,11 @@
+#ACCESSING GMAIL FROM A HEADLESS ENVIORNMENT REQUIRES CHANGES IN GOOGLE ACCOUNT SETTINGS AND CONFIGURATION OF GOOGLE API
+
 from __future__ import print_function
 import os.path
 import base64
 import email
 import re
-from datetime import datetime
+#from datetime import datetime
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -12,8 +14,8 @@ from googleapiclient.errors import HttpError
 import logging
 
 # Set up logging
-# Set up logging
 #logging.basicConfig(filename='/home/pi/Documents/app.log', filemode='w', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
 
 def get_email_data():
     SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
@@ -27,7 +29,24 @@ def get_email_data():
             if msg.get_content_type() == 'text/plain':
                 return msg.get_payload(decode=True).decode('utf-8')
         return None
-
+    
+    """ 
+    EXAMPLE BRYX DISPATCH EMAIL CONTENTS: 
+    dispatch: 800
+    location: 100 MAIN RD
+    crossStreets: FIRST ST / SECOND ST
+    city: ALBERTSON
+    state: ny
+    box: 80-NW
+    callType: Automatic Alarm
+    category: info
+    narrative: 1st flr smoke det
+    coordinates: [-69.64518823333333, 420.774188466666665]
+    incidentId: 2022-00000354
+    cadId: 444
+    timestamp: 2022-11-11 00:05:34.623000+00:00 
+    """
+    #parse_email_content will pull out relevant information from the email
     def parse_email_content(content):
         lines = content.splitlines()
         location = cross_streets = category = None
@@ -41,8 +60,10 @@ def get_email_data():
         return location, cross_streets, category
 
     creds = None
+    #check if token to acess GMAIL API is available at specified file path
     if os.path.exists('/home/pi/Documents/token.json'):
         creds = Credentials.from_authorized_user_file('/home/pi/Documents/token.json', SCOPES)
+    #If credentials are expired or do not exist at that file path they CAN be generated with valid login credentials
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -52,6 +73,12 @@ def get_email_data():
             creds = flow.run_local_server(port=0)
         with open('/home/pi/Documents/token.json', 'w') as token:
             token.write(creds.to_json())
+
+    #To allow this method of accessing GMAIl to work, the account must be configured for external IMAP access
+    #valid tokens can be generated on any device logged into the desired google account and copied over to the raspberry pi
+    #HOWEVER tokens do EXPIRE after a certain period of time and this would require constant manual updates
+    #BY giving the raspberry pi credentials to login to the gmail account continually, new tokens can be constantly created
+    #this requires an APP PASSWORD to be created which allows devices that dont supprt 2 factor authentication to login a google account
 
     try:
         service = build('gmail', 'v1', credentials=creds)
